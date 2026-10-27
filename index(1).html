@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LH 전략적 뉴스 분석 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f3f4f6; }
+        
+        /* 탭 전환 애니메이션 */
+        .tab-content { display: none; opacity: 0; transform: translateY(10px); transition: all 0.4s ease-in-out; }
+        .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
+        
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white shadow-lg shrink-0">
+        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-2xl font-extrabold flex items-center gap-3 tracking-tight">
+                <div class="bg-white text-blue-900 p-2 rounded-lg"><i class="fa-solid fa-chart-line"></i></div>
+                LH Strategic Intelligence
+            </div>
+            <div class="text-sm bg-black/20 backdrop-blur-sm border border-white/10 px-5 py-2.5 rounded-full flex items-center gap-3 shadow-inner">
+                <i class="fa-solid fa-satellite-dish text-green-400 animate-pulse"></i>
+                <span>데이터 동기화 완료:</span>
+                <span id="update-time" class="font-bold text-yellow-300 tracking-wide">오늘 09:00</span>
+                <span class="hidden lg:inline text-xs text-blue-200 ml-2 border-l border-white/20 pl-2">AI 비정형 텍스트 마이닝 가동 중</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 sm:px-6 py-6 flex flex-col lg:flex-row gap-6 flex-grow overflow-hidden h-full">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full lg:w-72 flex-shrink-0 lg:h-full lg:overflow-y-auto pb-4 scrollbar-hide">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-5 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-blue-600"></i>
+                    <span class="font-bold text-gray-700">전략 분석 프레임워크</span>
+                </div>
+                <ul class="flex flex-col p-3 gap-1" id="tabs">
+                    <!-- Dashboard -->
+                    <li>
+                        <button onclick="switchTab('dashboard')" class="tab-btn active-tab w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 text-blue-700 bg-blue-50 font-bold" data-target="dashboard">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fa-solid fa-house"></i></div>
+                            데일리 리포트
+                        </button>
+                    </li>
+                    <!-- PEST -->
+                    <li>
+                        <button onclick="switchTab('pest')" class="tab-btn w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 hover:bg-gray-50 text-gray-600 font-medium" data-target="pest">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:scale-110 group-hover:text-blue-600 transition-all"><i class="fa-solid fa-globe"></i></div>
+                            거시환경 (PEST)
+                        </button>
+                    </li>
+                    <!-- SWOT -->
+                    <li>
+                        <button onclick="switchTab('swot')" class="tab-btn w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 hover:bg-gray-50 text-gray-600 font-medium" data-target="swot">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:scale-110 group-hover:text-blue-600 transition-all"><i class="fa-solid fa-chess-board"></i></div>
+                            SWOT 분석
+                        </button>
+                    </li>
+                    <!-- 5 Forces -->
+                    <li>
+                        <button onclick="switchTab('forces')" class="tab-btn w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 hover:bg-gray-50 text-gray-600 font-medium" data-target="forces">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:scale-110 group-hover:text-blue-600 transition-all"><i class="fa-solid fa-hand-fist"></i></div>
+                            5 Force 분석
+                        </button>
+                    </li>
+                    <!-- Stakeholders -->
+                    <li>
+                        <button onclick="switchTab('stakeholder')" class="tab-btn w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 hover:bg-gray-50 text-gray-600 font-medium" data-target="stakeholder">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:scale-110 group-hover:text-blue-600 transition-all"><i class="fa-solid fa-users"></i></div>
+                            이해관계자 분석
+                        </button>
+                    </li>
+                    <!-- 7S -->
+                    <li>
+                        <button onclick="switchTab('7s')" class="tab-btn w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 hover:bg-gray-50 text-gray-600 font-medium" data-target="7s">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:scale-110 group-hover:text-blue-600 transition-all"><i class="fa-solid fa-sitemap"></i></div>
+                            내부역량 (7S)
+                        </button>
+                    </li>
+                    <!-- VRIO / As-Is To-Be -->
+                    <li>
+                        <button onclick="switchTab('vrio')" class="tab-btn w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 hover:bg-gray-50 text-gray-600 font-medium" data-target="vrio">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:scale-110 group-hover:text-blue-600 transition-all"><i class="fa-solid fa-medal"></i></div>
+                            역량 (VRIO / To-Be)
+                        </button>
+                    </li>
+                    <!-- Future Prediction -->
+                    <li class="mt-4 pt-4 border-t border-gray-100">
+                        <button onclick="switchTab('future')" class="tab-btn w-full text-left px-4 py-3.5 rounded-xl transition-all duration-200 group flex items-center gap-3 hover:bg-indigo-50 text-gray-600 font-medium" data-target="future">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-all"><i class="fa-solid fa-robot"></i></div>
+                            미래예측 (AI 마이닝)
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow lg:h-full lg:overflow-y-auto pb-10 scrollbar-hide">
+            
+            <!-- 1. Dashboard Tab (Default) -->
+            <div id="dashboard" class="tab-content active">
+                <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">오늘의 LH 주요 이슈 요약</h2>
+                        <p id="daily-summary-desc" class="text-gray-500">경영평가 데이터 및 매일 오전 09:00 최신 언론 보도를 융합한 핵심 브리핑입니다.</p>
+                    </div>
+                    <div class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200 font-medium shrink-0">
+                        <i class="fa-regular fa-clock mr-1"></i> 매일 아침 09:00 자동 갱신
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="text-sm text-gray-500 mb-1">총 부채 규모</div>
+                        <div class="text-2xl font-bold text-red-600">173.7<span class="text-base text-gray-500 font-normal">조 원</span></div>
+                        <div class="text-xs text-red-400 mt-1"><i class="fa-solid fa-arrow-trend-up"></i> 부채비율 230.8%</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="text-sm text-gray-500 mb-1">고객만족도 지수</div>
+                        <div class="text-2xl font-bold text-blue-600">95.05<span class="text-base text-gray-500 font-normal">점</span></div>
+                        <div class="text-xs text-green-500 mt-1"><i class="fa-solid fa-arrow-trend-up"></i> 전년비 대폭 상승</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="text-sm text-gray-500 mb-1">윤리경영 평가</div>
+                        <div class="text-2xl font-bold text-orange-500">E0<span class="text-base text-gray-500 font-normal">등급</span></div>
+                        <div class="text-xs text-orange-400 mt-1"><i class="fa-solid fa-circle-exclamation"></i> 종합청렴도 4등급</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="text-sm text-gray-500 mb-1">온실가스 절감</div>
+                        <div class="text-2xl font-bold text-green-600">8.2<span class="text-base text-gray-500 font-normal">%</span></div>
+                        <div class="text-xs text-green-500 mt-1"><i class="fa-solid fa-leaf"></i> 목표 달성 완료</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Threats -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center"><i class="fa-solid fa-fire text-red-500 mr-2"></i>핵심 위기 요인 (Threats & Weakness)</h3>
+                        <ul id="daily-threats" class="space-y-3">
+                            <li class="flex items-start gap-3 text-gray-700 bg-red-50/50 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-red-400 mt-1"></i> <div><b>재무 악화:</b> 3기 신도시 등 정책사업 누적으로 부채 173.7조원 도달 (비율 230.8%) 및 자금회수 압박</div></li>
+                            <li class="flex items-start gap-3 text-gray-700 bg-red-50/50 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-red-400 mt-1"></i> <div><b>윤리 및 노사 리스크:</b> 윤리경영 'E0', 종합청렴도 4등급 및 '9·3 기능개혁안(조직 분사)' 반대에 따른 노사 교섭 갈등</div></li>
+                            <li class="flex items-start gap-3 text-gray-700 bg-red-50/50 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation text-red-400 mt-1"></i> <div><b>원가 부담:</b> 건설업계 전반의 원자재가 상승 및 공사비 인상으로 인한 공사 수익성 급감 우려</div></li>
+                        </ul>
+                    </div>
+                    <!-- Opportunities -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center"><i class="fa-solid fa-lightbulb text-blue-500 mr-2"></i>기회 요인 (Opportunities)</h3>
+                        <ul id="daily-opportunities" class="space-y-3">
+                            <li class="flex items-start gap-3 text-gray-700 bg-blue-50/50 p-3 rounded-lg"><i class="fa-solid fa-check-circle text-blue-400 mt-1"></i> <div><b>정책 수혜:</b> '9.7 주택공급 확대방안(수도권 135만 가구 착공)'에 맞춘 공공주택 직접 시행 전환으로 개발이익 내부 귀속 기대</div></li>
+                            <li class="flex items-start gap-3 text-gray-700 bg-blue-50/50 p-3 rounded-lg"><i class="fa-solid fa-check-circle text-blue-400 mt-1"></i> <div><b>해외 진출:</b> 베트남 박닌성 신도시 사업(K-도시 수출 1호) 등 13개사 해외진출 지원으로 미래 먹거리 확보</div></li>
+                            <li class="flex items-start gap-3 text-gray-700 bg-blue-50/50 p-3 rounded-lg"><i class="fa-solid fa-check-circle text-blue-400 mt-1"></i> <div><b>서비스 개선:</b> 고객만족도 대폭 향상(95.05점), 'LH안전프렌즈' 및 페이퍼리스 청약 도입 등 혁신 성과 가시화</div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. PEST Tab -->
+            <div id="pest" class="tab-content">
+                <div class="mb-6 border-b pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-900">거시환경 분석 (PEST)</h2>
+                    <p class="text-gray-500 mt-2">정치, 경제, 사회, 기술적 요인이 LH의 전략 방향에 미치는 거시적 영향을 분석합니다.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-600 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-blue-100 p-3 rounded-full text-blue-700"><i class="fa-solid fa-landmark text-xl"></i></div>
+                            <h3 class="text-xl font-bold text-gray-900">Political (정치/정책적)</h3>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700">
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-blue-500 mt-1"></i> '9.7 주택공급 확대방안' 등 정부의 강력한 공공주택 물량 확보 정책 실행 요구</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-blue-500 mt-1"></i> 공공기관 혁신 및 강도 높은 부채감축 대책(재정건전화) 압박 기조 지속</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-blue-500 mt-1"></i> 투명성 제고를 위한 공직기강 및 윤리경영 실천에 대한 국회/정부의 엄격한 잣대 (경영평가 E0 등급)</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-emerald-500 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-emerald-100 p-3 rounded-full text-emerald-700"><i class="fa-solid fa-chart-line text-xl"></i></div>
+                            <h3 class="text-xl font-bold text-gray-900">Economic (경제적)</h3>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700">
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-500 mt-1"></i> 고금리 및 부동산 경기 침체 장기화로 민간의 토지 구매여력 약화 및 분양 위축</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-500 mt-1"></i> 시중노임단가 및 원자재가 상승으로 인한 건설 공사비 폭등 (수익성 악화 요인)</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-emerald-500 mt-1"></i> 공공주택관리사업 구조적 적자 발생으로 일반사업을 통한 '교차보전' 필요성 극대화</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-500 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-orange-100 p-3 rounded-full text-orange-700"><i class="fa-solid fa-people-group text-xl"></i></div>
+                            <h3 class="text-xl font-bold text-gray-900">Social (사회적)</h3>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700">
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-orange-500 mt-1"></i> 1인 가구 급증, 저출산/고령화에 따른 생애주기별 맞춤형 주거복지 수요 폭발적 증가</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-orange-500 mt-1"></i> 층간소음, 철근누락 사태 등을 겪으며 공공주택 '품질'과 '안전'에 대한 국민적 눈높이 격상</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-orange-500 mt-1"></i> 공공기관의 인권경영, 양성평등(여성 고용률 37.2%), 장애인 의무고용 등 사회적 책임 요구 증대</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-purple-500 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-purple-100 p-3 rounded-full text-purple-700"><i class="fa-solid fa-microchip text-xl"></i></div>
+                            <h3 class="text-xl font-bold text-gray-900">Technological (기술적)</h3>
+                        </div>
+                        <ul class="list-none space-y-3 text-gray-700">
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-purple-500 mt-1"></i> 데이터기반행정 및 '디지털플랫폼정부' 구현을 위한 정보 개방·활용 기술의 중요성 대두</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-purple-500 mt-1"></i> 스마트시티, 디지털 트윈, BIM, RPA 등 프롭테크(PropTech) 기술의 현장 적용 가속화</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-angle-right text-purple-500 mt-1"></i> 기후위기 대응을 위한 제로에너지 건축, 온실가스 감축 설계 등 친환경/탄소중립 기술 필수화</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. SWOT Tab -->
+            <div id="swot" class="tab-content">
+                <div class="mb-6 border-b pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-900">SWOT 분석</h2>
+                    <p class="text-gray-500 mt-2">LH의 내부 역량(강점/약점)과 외부 환경(기회/위협)을 종합적으로 분석합니다.</p>
+                </div>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+                        <!-- Cross Divider (visible on lg only) -->
+                        <div class="hidden md:block absolute top-1/2 left-0 w-full h-px bg-gray-200 -translate-y-1/2"></div>
+                        <div class="hidden md:block absolute top-0 left-1/2 w-px h-full bg-gray-200 -translate-x-1/2"></div>
+                        
+                        <!-- Strength -->
+                        <div class="p-4 rounded-xl hover:bg-blue-50/50 transition-colors">
+                            <h3 class="text-xl font-black text-blue-700 mb-3 flex items-center"><span class="text-2xl mr-2">S</span>trength (강점)</h3>
+                            <ul class="space-y-2 text-sm text-gray-700 ml-2">
+                                <li><i class="fa-solid fa-circle text-[8px] text-blue-400 mr-2 relative -top-[2px]"></i>법적 권한에 기반한 독점적 토지·주택 사업 권한</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-blue-400 mr-2 relative -top-[2px]"></i>자본금 65조 및 정부 보증을 통한 강력한 재무융통성</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-blue-400 mr-2 relative -top-[2px]"></i>초대형 신도시/택지개발 부문의 탁월한 수익 창출력</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-blue-400 mr-2 relative -top-[2px]"></i>부동산 전 영역을 커버하는 국내 최고 수준의 전문 인력(6,600명)</li>
+                            </ul>
+                        </div>
+                        <!-- Weakness -->
+                        <div class="p-4 rounded-xl hover:bg-red-50/50 transition-colors">
+                            <h3 class="text-xl font-black text-red-700 mb-3 flex items-center"><span class="text-2xl mr-2">W</span>eakness (약점)</h3>
+                            <ul class="space-y-2 text-sm text-gray-700 ml-2">
+                                <li><i class="fa-solid fa-circle text-[8px] text-red-400 mr-2 relative -top-[2px]"></i>정책사업 누적으로 인한 막대한 부채 (173.7조원, 부채비율 230.8%)</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-red-400 mr-2 relative -top-[2px]"></i>임대주택 공급 확대로 인한 구조적 영업적자 발생 구조</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-red-400 mr-2 relative -top-[2px]"></i>내부통제 미흡 및 청렴도 하락(종합청렴도 4등급, 윤리경영 E0)</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-red-400 mr-2 relative -top-[2px]"></i>관료화된 거대 조직으로 인한 의사결정 속도 및 혁신성 저하 가능성</li>
+                            </ul>
+                        </div>
+                        <!-- Opportunity -->
+                        <div class="p-4 rounded-xl hover:bg-emerald-50/50 transition-colors">
+                            <h3 class="text-xl font-black text-emerald-700 mb-3 flex items-center"><span class="text-2xl mr-2">O</span>pportunity (기회)</h3>
+                            <ul class="space-y-2 text-sm text-gray-700 ml-2">
+                                <li><i class="fa-solid fa-circle text-[8px] text-emerald-400 mr-2 relative -top-[2px]"></i>정부 '9.7 대책' 등 공공주택 직접 시행 확대를 통한 내부 수익 확보</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-emerald-400 mr-2 relative -top-[2px]"></i>베트남 박닌성 신도시 등 K-스마트시티 해외 수출 기회 열림</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-emerald-400 mr-2 relative -top-[2px]"></i>맞춤형 주거복지 및 도시재생 사업 등 사회적 패러다임 변화에 따른 신수요</li>
+                            </ul>
+                        </div>
+                        <!-- Threat -->
+                        <div class="p-4 rounded-xl hover:bg-orange-50/50 transition-colors">
+                            <h3 class="text-xl font-black text-orange-700 mb-3 flex items-center"><span class="text-2xl mr-2">T</span>hreat (위협)</h3>
+                            <ul class="space-y-2 text-sm text-gray-700 ml-2">
+                                <li><i class="fa-solid fa-circle text-[8px] text-orange-400 mr-2 relative -top-[2px]"></i>시중노임단가 및 원자재가 상승으로 건설 공사비 폭등 및 수익성 직격탄</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-orange-400 mr-2 relative -top-[2px]"></i>고금리 장기화로 인한 민간 건설사 부실 우려 및 토지 매각 차질</li>
+                                <li><i class="fa-solid fa-circle text-[8px] text-orange-400 mr-2 relative -top-[2px]"></i>건설안전/품질 사고(철근누락 등) 재발 시 감당할 수 없는 수준의 평판 하락 리스크</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 5 Forces Tab -->
+            <div id="forces" class="tab-content">
+                <div class="mb-6 border-b pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-900">산업/과업환경 (5 Force 분석)</h2>
+                    <p class="text-gray-500 mt-2">마이클 포터의 모델을 적용하여 LH를 둘러싼 산업 내 경쟁 강도와 외부 압력을 5가지 차원으로 진단합니다.</p>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center gap-4 hover:border-blue-300 transition-colors">
+                        <div class="w-16 h-16 shrink-0 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-3xl"><i class="fa-solid fa-building"></i></div>
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="font-bold text-lg text-gray-900">산업 내 경쟁자 간의 경쟁</h3>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded">낮음~중간</span>
+                            </div>
+                            <p class="text-sm text-gray-600">국토 단위 대규모 택지 개발은 LH가 독점적 위치를 점유하나, 공공분양 분야에서는 대형 민간 건설사(브랜드 아파트) 및 지방공기업(SH, GH 등)과 제한적 경쟁 중.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center gap-4 hover:border-blue-300 transition-colors">
+                        <div class="w-16 h-16 shrink-0 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-3xl"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="font-bold text-lg text-gray-900">신규 진입자의 위협</h3>
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">매우 낮음</span>
+                            </div>
+                            <p class="text-sm text-gray-600">특별법에 의해 설립되었으며, 65조 원 규모의 법정자본금(납입자본금 51.3조)과 토지 수용권 등 정부의 권한 위탁이 필수적이므로 타 기업의 신규 진입 장벽은 완벽에 가까움.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center gap-4 hover:border-blue-300 transition-colors">
+                        <div class="w-16 h-16 shrink-0 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-3xl"><i class="fa-solid fa-city"></i></div>
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="font-bold text-lg text-gray-900">대체재의 위협</h3>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded">중간</span>
+                            </div>
+                            <p class="text-sm text-gray-600">민간 주도의 재건축·재개발 정비사업 단지 및 양질의 민간 임대주택, 오피스텔 등이 공공주택의 주요 대체재 역할을 수행.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center gap-4 hover:border-blue-300 transition-colors">
+                        <div class="w-16 h-16 shrink-0 bg-red-100 text-red-600 rounded-xl flex items-center justify-center text-3xl"><i class="fa-solid fa-bullhorn"></i></div>
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="font-bold text-lg text-gray-900">구매자(국민/입주민)의 교섭력</h3>
+                                <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded">매우 높음</span>
+                            </div>
+                            <p class="text-sm text-gray-600">주택 품질(층간소음 등)에 대한 기대가 매우 높아 '공공주택 거주 후 평가(POE)' 등을 통해 여론을 형성하며, 강력한 민원과 교섭력 행사.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center gap-4 hover:border-blue-300 transition-colors">
+                        <div class="w-16 h-16 shrink-0 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-3xl"><i class="fa-solid fa-trowel-bricks"></i></div>
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="font-bold text-lg text-gray-900">공급자(건설/자재사)의 교섭력</h3>
+                                <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-bold rounded">높아짐</span>
+                            </div>
+                            <p class="text-sm text-gray-600">시공을 담당하는 민간 건설사들이 최근 원자재 가격 및 금리 인상을 이유로 강력한 공사비 증액 요구를 하고 있어 교섭력이 크게 상승.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Stakeholder Tab -->
+            <div id="stakeholder" class="tab-content">
+                <div class="mb-6 border-b pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-900">이해관계자 분석</h2>
+                    <p class="text-gray-500 mt-2">권력(Power)과 관심(Interest) 매트릭스를 기반으로 LH를 둘러싼 핵심 이해관계자를 분류합니다.</p>
+                </div>
+                
+                <!-- Matrix Concept Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- High Power, High Interest -->
+                    <div class="bg-red-50 p-6 rounded-2xl border border-red-200 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">핵심 관리 (High Power / High Interest)</div>
+                        <h3 class="font-black text-red-900 text-xl mb-4 mt-2 flex items-center"><i class="fa-solid fa-building-columns mr-2"></i>정부 (국토부/기재부)</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">
+                            LH에 65조 원의 자본금을 출자하고 정책 사업을 위탁하며, 사업 손실 보전과 경영평가를 주관하는 <b>최고 권력의 핵심 이해관계자.</b> 혁신계획, 재정건전화, 부채 감축을 강력히 요구 중.
+                        </p>
+                    </div>
+                    <!-- High Power, High Interest 2 -->
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-200 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">핵심 관리 (High Power / High Interest)</div>
+                        <h3 class="font-black text-blue-900 text-xl mb-4 mt-2 flex items-center"><i class="fa-solid fa-users mr-2"></i>국민 및 입주민</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">
+                            공공임대 및 분양주택의 실제 수혜자이자 감시자. 거주 후 평가(POE), 안전 이슈(LH안전프렌즈) 등에 즉각적으로 반응하며 <b>강력한 여론을 형성하여 조직의 존립에 직접적 영향</b>을 미침.
+                        </p>
+                    </div>
+                    <!-- High Power, Low Interest (Environment Creators) -->
+                    <div class="bg-gray-100 p-6 rounded-2xl border border-gray-300 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-gray-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">환경 조성 (High Power / Low Interest)</div>
+                        <h3 class="font-black text-gray-800 text-xl mb-4 mt-2 flex items-center"><i class="fa-solid fa-gavel mr-2"></i>국회 및 언론, 감사원</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">
+                            입법, 국정감사, 감사원 징계문책 권한을 보유. 특정 이슈(철근 누락, 전관 특혜 등) 발생 시 강력한 권력을 행사하여 기업 평판과 경영 제도를 통제. 상시적 투명성(정보공시) 관리가 필요.
+                        </p>
+                    </div>
+                    <!-- Low Power, High Interest -->
+                    <div class="bg-orange-50 p-6 rounded-2xl border border-orange-200 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">정보 제공 (Low Power / High Interest)</div>
+                        <h3 class="font-black text-orange-900 text-xl mb-4 mt-2 flex items-center"><i class="fa-solid fa-truck-pickup mr-2"></i>건설사 / 내부직원(노조)</h3>
+                        <p class="text-sm text-gray-700 leading-relaxed">
+                            <b>건설사:</b> 공사비 현실화 및 물량 확보에 사활을 걺.<br>
+                            <b>노동조합/직원:</b> 임금, 복지(E0등급 이슈, 직장내 괴롭힘 근절), 블라인드 채용, 본부장 책임경영 등 제도 변화에 매우 민감하게 반응함.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. 7S Tab -->
+            <div id="7s" class="tab-content">
+                <div class="mb-6 border-b pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-900">내부역량 분석 (맥킨지 7S)</h2>
+                    <p class="text-gray-500 mt-2">조직을 구성하는 7가지 핵심 요소를 통해 LH의 현재 내부 체질을 진단합니다.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Shared Values (Spans multiple columns to show it's the core) -->
+                    <div class="bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-5 rounded-2xl shadow-md md:col-span-2 lg:col-span-3 flex items-center gap-4">
+                        <div class="text-5xl text-blue-300 opacity-80"><i class="fa-solid fa-gem"></i></div>
+                        <div>
+                            <h3 class="font-bold text-xl mb-1">Shared Values (공유가치)</h3>
+                            <p class="text-blue-100 text-sm">"국민주거생활 향상과 국토의 효율적 이용"이라는 국가적 사명 보유. 최근 신뢰 하락 사태 이후 <b>'국민 중심의 가치 체계(투명/청렴)'</b>로 슬로건을 개편하며 쇄신 중.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-red-500">
+                        <h3 class="font-bold text-gray-900 mb-2">Strategy (전략)</h3>
+                        <p class="text-sm text-gray-600">수익 중심의 단순 택지개발에서 탈피, 주거복지사업(아이 키우기 좋은 집 등) 확대 및 3기 신도시 조성을 통한 <b>공공주택 물량 전면 확대</b> 전략.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-orange-500">
+                        <h3 class="font-bold text-gray-900 mb-2">Structure (구조)</h3>
+                        <p class="text-sm text-gray-600">방대한 조직 관리를 위해 <b>'본부장 책임경영'</b> 제도를 도입하여 권한/책임 부여. 부사장 직속 디지털플랫폼 위원회 신설 등 애자일(Agile) 요소 가미 중.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-yellow-500">
+                        <h3 class="font-bold text-gray-900 mb-2">Systems (시스템)</h3>
+                        <p class="text-sm text-gray-600">원스톱 페이퍼리스 청약, LH안전프렌즈(카카오톡 신고), 통합 위험평가 시스템 등 <b>디지털 기반의 업무/안전 통제 시스템</b> 가동 중.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+                        <h3 class="font-bold text-gray-900 mb-2">Staff (인원)</h3>
+                        <p class="text-sm text-gray-600">약 6,600명의 부동산/건축/도시계획 인력풀. 청년인턴 734명 채용 우수기관 지정. 다만 육아휴직자 승진 배려 등 <b>양성평등 인사 제도 개선</b> 진행 중.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
+                        <h3 class="font-bold text-gray-900 mb-2">Style (조직문화)</h3>
+                        <p class="text-sm text-gray-600">과거 수직적 문화에서 탈피하려 노력 중. 그러나 <b>직장 내 괴롭힘 경험률 20.7% 및 윤리경영 E0 지표</b>에서 보듯 실질적 윤리 문화 내재화는 아직 부족함.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-purple-500">
+                        <h3 class="font-bold text-gray-900 mb-2">Skills (핵심기술/역량)</h3>
+                        <p class="text-sm text-gray-600">수익사업(신도시)으로 공익사업(주거복지) 손실을 메우는 <b>'교차보전'</b>이라는 타의 추종을 불허하는 대규모 복합사업 운영 및 재무 조달 역량.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. VRIO / As-Is To-Be Tab -->
+            <div id="vrio" class="tab-content">
+                <div class="mb-6 border-b pb-4">
+                    <h2 class="text-3xl font-extrabold text-gray-900">핵심역량 진단 (VRIO & As-Is/To-Be)</h2>
+                    <p class="text-gray-500 mt-2">LH가 보유한 자원의 경쟁 우위와 향후 조직 혁신 방향을 도출합니다.</p>
+                </div>
+                
+                <!-- As-Is / To-Be -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center"><i class="fa-solid fa-code-compare mr-2 text-blue-500"></i>변화 지향점 (As-Is vs To-Be)</h3>
+                    <div class="flex flex-col lg:flex-row items-center gap-6">
+                        <!-- As-Is -->
+                        <div class="flex-1 w-full bg-gray-50 border border-gray-200 p-6 rounded-2xl">
+                            <div class="inline-block px-3 py-1 bg-gray-200 text-gray-700 font-bold rounded-full text-sm mb-3">현재 상황 (As-Is)</div>
+                            <ul class="space-y-3 text-sm text-gray-700">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-red-500 mt-1"></i> 부채 173.7조원 (비율 230.8%)로 심각한 <b>재무건전성 위협</b></li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-red-500 mt-1"></i> 경영평가 윤리경영 'E0' 및 청렴도 4등급 등 <b>내부통제 리스크</b></li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-red-500 mt-1"></i> 공급자 중심의 단순 주택 공급 관행</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Arrow -->
+                        <div class="text-gray-300 text-4xl shrink-0 rotate-90 lg:rotate-0"><i class="fa-solid fa-angles-right"></i></div>
+                        
+                        <!-- To-Be -->
+                        <div class="flex-1 w-full bg-blue-50 border border-blue-200 p-6 rounded-2xl relative overflow-hidden">
+                            <div class="absolute -right-4 -bottom-4 text-8xl text-blue-100 opacity-50"><i class="fa-solid fa-rocket"></i></div>
+                            <div class="inline-block px-3 py-1 bg-blue-600 text-white font-bold rounded-full text-sm mb-3 relative z-10">미래 전략 (To-Be)</div>
+                            <ul class="space-y-3 text-sm text-gray-800 relative z-10">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-blue-600 mt-1 font-bold"></i> 공공주택 <b>직접 시행 확대</b>를 통한 이익 내부 귀속 및 재무 개선</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-blue-600 mt-1 font-bold"></i> 부패 근절 시스템 확립 및 본부장 책임경영을 통한 <b>투명 조직화</b></li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-blue-600 mt-1 font-bold"></i> 해외 스마트도시 수출(베트남 등) 및 데이터기반 <b>디지털 플랫폼 정부 구현</b></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VRIO -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center"><i class="fa-solid fa-microscope mr-2 text-indigo-500"></i>VRIO 역량 평가</h3>
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                <th class="px-4 py-3 font-bold text-gray-700">핵심 자원/역량</th>
+                                <th class="px-3 py-3 text-center font-bold text-gray-700">가치(V)</th>
+                                <th class="px-3 py-3 text-center font-bold text-gray-700">희소성(R)</th>
+                                <th class="px-3 py-3 text-center font-bold text-gray-700">모방불가(I)</th>
+                                <th class="px-3 py-3 text-center font-bold text-gray-700">조직화(O)</th>
+                                <th class="px-4 py-3 text-center font-bold text-blue-700">경쟁 우위 결과</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-blue-50/30 transition-colors">
+                                <td class="px-4 py-4 font-semibold text-gray-800">법적 권한 및 정부 지원(65조 자본)</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-4 py-4 text-center"><span class="px-3 py-1 bg-blue-100 text-blue-800 font-bold rounded-lg text-xs">지속적 경쟁우위</span></td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition-colors">
+                                <td class="px-4 py-4 font-semibold text-gray-800">초대형 신도시 개발/교차보전 노하우</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-4 py-4 text-center"><span class="px-3 py-1 bg-blue-100 text-blue-800 font-bold rounded-lg text-xs">지속적 경쟁우위</span></td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition-colors">
+                                <td class="px-4 py-4 font-semibold text-gray-800">아파트 건축 설계 및 시공 품질</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-gray-400 font-bold">X</td>
+                                <td class="px-3 py-4 text-center text-gray-400 font-bold">X</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-4 py-4 text-center"><span class="px-3 py-1 bg-gray-100 text-gray-700 font-bold rounded-lg text-xs">경쟁적 동등성(민간 우위)</span></td>
+                            </tr>
+                            <tr class="hover:bg-blue-50/30 transition-colors">
+                                <td class="px-4 py-4 font-semibold text-gray-800">윤리경영 및 청렴 조직문화</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-blue-600 font-black">O</td>
+                                <td class="px-3 py-4 text-center text-gray-400 font-bold">X</td>
+                                <td class="px-3 py-4 text-center text-red-500 font-black text-lg" title="경영평가 E0 등급">X</td>
+                                <td class="px-4 py-4 text-center"><span class="px-3 py-1 bg-red-100 text-red-800 font-bold rounded-lg text-xs">경쟁 열위 (치명적 약점)</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 8. Future Prediction Tab -->
+            <div id="future" class="tab-content">
+                <div class="mb-6 border-b pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-gray-900">미래예측 및 AI 텍스트 마이닝</h2>
+                        <p class="text-gray-500 mt-2">계량적 추세외삽법, 시나리오·델파이 기법 및 매일 오전 09:00 AI 뉴스 마이닝을 결합한 종합 미래예측 결과입니다.</p>
+                    </div>
+                    <span class="px-3 py-1.5 bg-indigo-100 text-indigo-800 font-bold rounded-full text-xs shrink-0">
+                        <i class="fa-solid fa-rotate mr-1"></i> 매일 09:00 뉴스 데이터 자동 연동
+                    </span>
+                </div>
+
+                <!-- 1. AI 텍스트 마이닝 & 오늘의 뉴스 브리핑 -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- 키워드 클라우드 (토픽 모델링) -->
+                    <div class="bg-gradient-to-br from-gray-900 to-indigo-950 text-white p-6 rounded-3xl shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-indigo-200 flex items-center"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>AI 텍스트 마이닝 핵심 키워드</h3>
+                                <span class="text-xs bg-white/10 px-2 py-1 rounded text-gray-300">토픽 모델링</span>
+                            </div>
+                            <p class="text-xs text-gray-400 mb-6">당일 수집된 LH 관련 뉴스 기사에서 추출한 고빈도 핵심 어휘 및 감성(긍정/부정) 분류입니다.</p>
+                            
+                            <div id="keyword-cloud" class="flex flex-wrap gap-2 items-center justify-center py-4 bg-white/5 rounded-2xl p-4 border border-white/10">
+                                <span class="px-3 py-1.5 bg-red-500/20 border border-red-400/40 text-red-300 rounded-full text-base font-extrabold">#부채비율_230.8%</span>
+                                <span class="px-3 py-1.5 bg-blue-500/20 border border-blue-400/40 text-blue-300 rounded-full text-lg font-black">#9.7_주택공급대책</span>
+                                <span class="px-2.5 py-1 bg-blue-500/20 border border-blue-400/40 text-blue-200 rounded-full text-sm font-bold">#직접시행_전환</span>
+                                <span class="px-3 py-1.5 bg-orange-500/20 border border-orange-400/40 text-orange-300 rounded-full text-base font-bold">#9.3_기능개혁안_분사</span>
+                                <span class="px-2.5 py-1 bg-red-500/20 border border-red-400/40 text-red-200 rounded-full text-xs font-semibold">#공사비_갈등</span>
+                                <span class="px-3 py-1 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 rounded-full text-sm font-bold">#베트남_박닌성_스마트시티</span>
+                                <span class="px-2.5 py-1 bg-orange-500/20 border border-orange-400/40 text-orange-200 rounded-full text-xs font-semibold">#윤리경영_E0</span>
+                                <span class="px-2.5 py-1 bg-purple-500/20 border border-purple-400/40 text-purple-200 rounded-full text-sm font-bold">#3기신도시_본청약</span>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-xs text-gray-400">
+                            <span>감성 분석: <b class="text-blue-300">기회 45%</b> / <b class="text-red-300">위협 55%</b></span>
+                            <span id="mined-count">수집 기사: 10건</span>
+                        </div>
+                    </div>
+
+                    <!-- 실시간 수집 뉴스 리스트 -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold text-gray-900 flex items-center"><i class="fa-regular fa-newspaper text-blue-600 mr-2"></i>오늘 오전 09:00 수집된 주요 뉴스</h3>
+                                <span id="news-sync-badge" class="text-xs bg-green-100 text-green-800 px-2.5 py-1 rounded-full font-bold">실시간 연동 중</span>
+                            </div>
+                            <div id="crawled-news-list" class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                                <div class="p-3.5 rounded-xl bg-gray-50 hover:bg-blue-50/50 transition-colors border border-gray-100">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded">기회 요인</span>
+                                        <span class="text-xs text-gray-400">오전 09:00 기준</span>
+                                    </div>
+                                    <h4 class="font-bold text-gray-800 text-sm mb-1">정부 '9·7 공급대책' 가속화… LH, 수도권 135만 가구 직접시행 전면 전환</h4>
+                                    <p class="text-xs text-gray-600">기존 민간 매각 방식에서 벗어나 LH가 직접 시행을 맡아 공급 속도를 높이고 개발이익을 내부로 귀속시켜 재무구조를 개선할 전망이다.</p>
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-gray-50 hover:bg-red-50/50 transition-colors border border-gray-100">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded">위협 요인</span>
+                                        <span class="text-xs text-gray-400">오전 09:00 기준</span>
+                                    </div>
+                                    <h4 class="font-bold text-gray-800 text-sm mb-1">'9·3 기능개혁안' 조직 분사 추진에 노조 반발… 중장기 부채 372조 돌파 우려</h4>
+                                    <p class="text-xs text-gray-600">주택도시개발공사와 자산공사로의 분리 추진을 두고 노사 교섭이 난항을 겪는 가운데, 정책사업 확대로 2030년 부채비율이 351%에 달할 것이라는 추계가 나왔다.</p>
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-gray-50 hover:bg-blue-50/50 transition-colors border border-gray-100">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">기회 요인</span>
+                                        <span class="text-xs text-gray-400">오전 09:00 기준</span>
+                                    </div>
+                                    <h4 class="font-bold text-gray-800 text-sm mb-1">K-신도시 수출 1호 '베트남 박닌성 스마트시티' 본궤도… 글로벌 영토 확장</h4>
+                                    <p class="text-xs text-gray-600">국내 택지개발 노하우를 접목한 베트남 동남신도시 개발 사업이 속도를 내며 민간 건설사 동반 진출의 교두보를 마련하고 있다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 계량분석(추세외삽법): 2026~2030 중장기 부채 전망 -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 flex items-center"><i class="fa-solid fa-chart-column text-red-500 mr-2"></i>계량분석 (추세외삽법): 2025~2030년 중장기 재무·부채 전망</h3>
+                            <p class="text-xs text-gray-500 mt-1">과거의 원리 및 시계열 데이터를 바탕으로 추정한 LH의 중장기 재무관리계획 추이입니다.</p>
+                        </div>
+                        <span class="text-xs bg-red-50 text-red-700 px-3 py-1 rounded-lg font-bold border border-red-100 shrink-0">출처: 재정경제부·국회예산정책처</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-center whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200 text-gray-700">
+                                    <th class="py-3 px-4 text-left font-bold">구분</th>
+                                    <th class="py-3 px-4 font-bold">2025년 (결산)</th>
+                                    <th class="py-3 px-4 font-bold text-blue-700">2026년 (전망)</th>
+                                    <th class="py-3 px-4 font-bold">2027년 (전망)</th>
+                                    <th class="py-3 px-4 font-bold">2028년 (전망)</th>
+                                    <th class="py-3 px-4 font-bold">2029년 (전망)</th>
+                                    <th class="py-3 px-4 font-bold text-red-600">2030년 (전망)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-3.5 px-4 text-left font-bold text-gray-800">총부채 규모 (조 원)</td>
+                                    <td class="py-3.5 px-4 text-gray-600">173.7조</td>
+                                    <td class="py-3.5 px-4 font-bold text-blue-700 bg-blue-50/30">197.5조</td>
+                                    <td class="py-3.5 px-4 text-gray-700">240.1조</td>
+                                    <td class="py-3.5 px-4 text-gray-700">285.4조</td>
+                                    <td class="py-3.5 px-4 text-gray-700">330.2조</td>
+                                    <td class="py-3.5 px-4 font-extrabold text-red-600 bg-red-50/40">372.8조</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-3.5 px-4 text-left font-bold text-gray-800">부채비율 (%)</td>
+                                    <td class="py-3.5 px-4 text-gray-600">230.8%</td>
+                                    <td class="py-3.5 px-4 font-bold text-blue-700 bg-blue-50/30">246.2%</td>
+                                    <td class="py-3.5 px-4 text-gray-700">275.0%</td>
+                                    <td class="py-3.5 px-4 text-gray-700">303.8%</td>
+                                    <td class="py-3.5 px-4 text-gray-700">328.5%</td>
+                                    <td class="py-3.5 px-4 font-extrabold text-red-600 bg-red-50/40">351.2%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. 시나리오 기법 (복수적 미래예측) & 델파이 기법 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-emerald-500">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-lg">시나리오 1 (Optimistic)</span>
+                            <i class="fa-solid fa-sun text-emerald-500 text-xl"></i>
+                        </div>
+                        <h4 class="font-bold text-gray-900 text-lg mb-2">우호적 미래 (선호하는 미래)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            금리 인하 및 부동산 심리 회복으로 3기 신도시 분양 수익이 조기 회수되고, 9·7 대책에 따른 직접시행 이익이 극대화되어 부채비율이 250% 이하로 안정화되는 시나리오.
+                        </p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-500">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-1 bg-blue-100 text-blue-800 font-bold text-xs rounded-lg">시나리오 2 (Most Likely)</span>
+                            <i class="fa-solid fa-scale-balanced text-blue-500 text-xl"></i>
+                        </div>
+                        <h4 class="font-bold text-gray-900 text-lg mb-2">중립적 미래 (가장 유력한 추정)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            임대주택 적자와 신도시 초기 투자비로 부채는 300조 원대로 증가하나, 정부의 출자 확대 및 토지리츠·유휴자산 매각 등 자구책을 통해 유동성 위기를 방어하며 공급 목표를 달성하는 시나리오.
+                        </p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-red-500">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-1 bg-red-100 text-red-800 font-bold text-xs rounded-lg">시나리오 3 (Pessimistic / 와일드카드)</span>
+                            <i class="fa-solid fa-cloud-bolt text-red-500 text-xl"></i>
+                        </div>
+                        <h4 class="font-bold text-gray-900 text-lg mb-2">비관적 미래 (블랙스완)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            원자재가 폭등 지속 및 9·3 조직 분사 갈등 장기화로 사업이 지연되고, 이자부담부채 급증으로 부채가 372.8조 원을 돌파하여 강도 높은 사업 축소 및 구조조정이 단행되는 시나리오.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        /**
+         * 파이썬 크롤러가 생성한 lh_daily_report.json 데이터를 불러와 화면에 자동 반영하는 함수
+         */
+        async function loadDailyReport() {
+            try {
+                // 캐시 방지를 위해 타임스탬프 추가
+                const response = await fetch('./lh_daily_report.json?t=' + new Date().getTime());
+                if (!response.ok) return;
+                const data = await response.json();
+
+                // 1. 상단 업데이트 시간 갱신
+                if (data.update_time) {
+                    document.getElementById('update-time').textContent = data.update_time;
+                }
+
+                // 2. 데일리 리포트 요약 문구 갱신
+                if (data.summary) {
+                    document.getElementById('daily-summary-desc').textContent = data.summary;
+                }
+
+                // 3. 기회 요인 리스트 갱신
+                if (data.opportunities && data.opportunities.length > 0) {
+                    const oppList = document.getElementById('daily-opportunities');
+                    oppList.innerHTML = data.opportunities.map(item => `
+                        <li class="flex items-start gap-3 text-gray-700 bg-blue-50/50 p-3 rounded-lg">
+                            <i class="fa-solid fa-check-circle text-blue-400 mt-1"></i>
+                            <div>${item}</div>
+                        </li>
+                    `).join('');
+                }
+
+                // 4. 위기 요인 리스트 갱신
+                if (data.threats && data.threats.length > 0) {
+                    const threatList = document.getElementById('daily-threats');
+                    threatList.innerHTML = data.threats.map(item => `
+                        <li class="flex items-start gap-3 text-gray-700 bg-red-50/50 p-3 rounded-lg">
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 mt-1"></i>
+                            <div>${item}</div>
+                        </li>
+                    `).join('');
+                }
+
+                // 5. 미래예측 탭의 수집된 뉴스 기사 목록 갱신
+                if (data.news_items && data.news_items.length > 0) {
+                    const newsContainer = document.getElementById('crawled-news-list');
+                    newsContainer.innerHTML = data.news_items.map(news => `
+                        <a href="${news.link}" target="_blank" class="block p-3.5 rounded-xl bg-gray-50 hover:bg-blue-50/50 transition-colors border border-gray-100">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded">AI 수집 기사</span>
+                                <span class="text-xs text-gray-400">${data.update_time || '오늘 09:00'}</span>
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm mb-1 hover:text-blue-600">${news.title}</h4>
+                            <p class="text-xs text-gray-600 line-clamp-2">${news.snippet}</p>
+                        </a>
+                    `).join('');
+                }
+
+                if (data.raw_news_count) {
+                    document.getElementById('mined-count').textContent = `수집 기사: ${data.raw_news_count}건`;
+                }
+            } catch (e) {
+                console.log('아직 생성된 JSON 리포트가 없어 기본 브리핑 데이터를 표시합니다.');
+            }
+        }
+
+        // 페이지 로드 시 JSON 데이터 동기화 시도
+        window.addEventListener('DOMContentLoaded', loadDailyReport);
+
+        /**
+         * 탭 전환 로직 (오류 방어 코드 포함)
+         */
+        function switchTab(tabId) {
+            // 1. 클릭하려는 탭 콘텐츠가 실제로 존재하는지 확인 (null 방어)
+            const targetContent = document.getElementById(tabId);
+            if (!targetContent) {
+                console.warn(`[System] Warning: Tab content with ID '${tabId}' not found.`);
+                return; 
+            }
+
+            // 2. 모든 탭 콘텐츠 숨기기
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 3. 선택한 탭 콘텐츠 표시하기
+            targetContent.classList.add('active');
+            
+            // 4. 왼쪽 메뉴 버튼 스타일 업데이트
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                // 기본 비활성 스타일로 초기화
+                btn.classList.remove('text-blue-700', 'bg-blue-50', 'font-bold', 'active-tab');
+                btn.classList.add('text-gray-600', 'font-medium');
+                
+                // 아이콘 배경색 초기화
+                const iconBg = btn.querySelector('div');
+                if(iconBg) {
+                    // 미래예측 탭 예외처리
+                    if(btn.getAttribute('data-target') === 'future') {
+                        iconBg.classList.replace('bg-indigo-600', 'bg-indigo-100');
+                        iconBg.classList.replace('text-white', 'text-indigo-600');
+                    } else {
+                        iconBg.classList.replace('bg-blue-100', 'bg-gray-100');
+                    }
+                }
+
+                // 선택된 버튼에 활성 스타일 적용
+                if(btn.getAttribute('data-target') === tabId) {
+                    btn.classList.add('active-tab');
+                    
+                    if(tabId === 'future') {
+                        btn.classList.add('text-indigo-700', 'bg-indigo-50', 'font-bold');
+                        btn.classList.remove('text-gray-600', 'font-medium');
+                        if(iconBg) {
+                            iconBg.classList.replace('bg-indigo-100', 'bg-indigo-600');
+                            iconBg.classList.replace('text-indigo-600', 'text-white');
+                        }
+                    } else {
+                        btn.classList.add('text-blue-700', 'bg-blue-50', 'font-bold');
+                        btn.classList.remove('text-gray-600', 'font-medium');
+                        if(iconBg) {
+                            iconBg.classList.replace('bg-gray-100', 'bg-blue-100');
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
